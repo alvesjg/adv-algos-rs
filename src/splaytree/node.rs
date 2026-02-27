@@ -4,7 +4,7 @@ pub struct Node<T>{
     pub(crate) right : Option<Box<Node<T>>>,
 }
 
-impl<T> Node<T> {
+impl<T: Ord> Node<T> {
     pub fn new(key : T) -> Self{
         Self{ key, left: None, right: None}
     }
@@ -29,6 +29,48 @@ impl<T> Node<T> {
             return node;
         };
     }
+
+    pub fn rotate_left_left(mut node: Box<Self>) -> Box<Self>{
+        node = Node::rotate_left(node);
+        node = Node::rotate_left(node);
+        return node;
+    }
+
+    pub fn rotate_right_right(mut node: Box<Self>) -> Box<Self>{
+        node = Node::rotate_right(node);
+        node = Node::rotate_right(node);
+        return node;
+    }
+
+    pub fn rotate_left_right(mut node: Box<Self>) -> Box<Self>{
+        if let Some(left_child) = node.left.take(){
+            node.left = Some(Node::rotate_left(left_child));
+            return Node::rotate_right(node);
+            
+        }
+        return node;
+    }
+
+    pub fn rotate_right_left(mut node: Box<Self>) -> Box<Self>{
+        if let Some(right_child) = node.right.take(){
+            node.right = Some(Node::rotate_right(right_child));
+            return Node::rotate_left(node);
+        }
+        return node;
+    }
+
+    pub fn splay(mut node : Box<Self>, key : &T) -> Box<Self> {
+        todo!();
+    }
+
+    pub fn join(mut left_node : Option<Box<Self>>, mut right_node : Option<Box<Self>>) -> Box<Self> {
+        todo!();
+    }
+
+    pub fn split(mut node : Box<Self>, key: &T)-> (Option<Box<Self>>,Option<Box<Self>>) {
+        todo!();
+    }
+
 }
 
 #[cfg(test)]
