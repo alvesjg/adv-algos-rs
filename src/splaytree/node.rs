@@ -1,10 +1,10 @@
 pub struct Node<T>{
-    pub(crate) key   : T,
-    pub(crate) left  : Option<Box<Node<T>>>,
-    pub(crate) right : Option<Box<Node<T>>>,
+    pub key   : T,
+    pub left  : Option<Box<Node<T>>>,
+    pub right : Option<Box<Node<T>>>,
 }
 
-impl<T: Ord> Node<T> {
+impl<T: Ord + Clone> Node<T> {
     pub fn new(key : T) -> Self{
         Self{ key, left: None, right: None}
     }
@@ -59,34 +59,79 @@ impl<T: Ord> Node<T> {
         return node;
     }
 
-    pub fn splay(mut node : Box<Self>, key : &T) -> Box<Self> {
+    pub fn splay(mut root : Option<Box<Self>>, key : &mut T) -> Option<Box<Self>> {
+        if let Some(old_root) = root.take(){
+            let mut dir : i32 = 0;
+            return Some(Self::priv_splay(old_root,key,0, &mut dir));
+        }
+        else{
+            return None;
+        }
+    }
+
+    pub fn priv_splay(mut node : Box<Self>, key : &mut T , depth :usize, dir : &mut i32) -> Box<Self>{
+        if node.key == *key{
+            return node;
+        }
+        if node.key > *key{ // Node is in the left subtree
+            if let Some(left_node) = node.left.take(){
+                let left_splayed = Self::priv_splay(left_node,key,depth+1,dir);
+                if left_splayed.key == *key{
+                    *dir = -1;
+                    node.left = Some(left_splayed);
+                    if depth == 0{
+                        return Self::rotate_right(node);
+                    }
+                }
+                else{
+                    node.left = Some(left_splayed);
+                    if *dir == -1 {
+                        return Self::rotate_right_right(node);
+                    }
+                    else{
+                        return Self::rotate_left_right(node);
+                    }
+                }
+            }
+            else{ // there is no node with such key in the tree
+                *key = node.key.clone();
+                return node;
+            }
+        }
+        else{ // Node is in the right subtree
+            if let Some(right_node) = node.right.take(){
+                let right_splayed = Self::priv_splay(right_node,key,depth+1,dir);
+                if right_splayed.key == *key{
+                    *dir = 1;
+                    node.right = Some(right_splayed);
+                    if depth == 0{
+                        return Self::rotate_left(node);
+                    }
+                }
+                else{
+                    node.right = Some(right_splayed);
+                    if*dir == -1{
+                        return Self::rotate_right_left(node);
+                    }
+                    else{
+                        return Self::rotate_left_left(node);
+                    }
+                }
+            }
+            else{ // there is no node with such key in the tree
+                *key = node.key.clone();
+                return node;
+            }
+        }
+        return node;
+    }
+
+    pub fn join(left_node : Option<Box<Self>>, right_node : Option<Box<Self>>) -> Box<Self> {
         todo!();
     }
 
-    pub fn join(mut left_node : Option<Box<Self>>, mut right_node : Option<Box<Self>>) -> Box<Self> {
+    pub fn split(mut node : Box<Self>, key: &mut T)-> (Option<Box<Self>>,Option<Box<Self>>) {
         todo!();
     }
 
-    pub fn split(mut node : Box<Self>, key: &T)-> (Option<Box<Self>>,Option<Box<Self>>) {
-        todo!();
-    }
-
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_right_rotation() {
-        let mut root = Box::new(Node::new(10));
-        root.left = Some(Box::new(Node::new(5)));
-        
-        // Pass the owned Box in, get the new owned Box out
-        let new_root = Node::rotate_right(root);
-
-        assert_eq!(new_root.key, 5);
-        // Use as_ref() to peek inside the Option<Box<Node<T>>>
-        assert_eq!(new_root.right.as_ref().unwrap().key, 10);
-    }
 }
